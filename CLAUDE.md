@@ -32,15 +32,16 @@ A Streamlit controllership ("Controladoria") dashboard for **Fazendinha Resort P
   1. The sidebar filters build filtered DataFrames: `r` (revenue), `cx` (cash), `cu` (costs), `au` (audits), `pr` (protocols) and `plano` (budget).
      Without `receitas`, the app shows only an empty state and calls `st.stop()`. Tabs whose base is in `ausentes` (Custos, Auditorias, Orçado) are hidden, and so are KPIs and indicators from missing bases.
   2. `indicadores_mensais()` builds the monthly indicator table. The Indicadores and Predição tabs share it.
-  3. Eight tabs mirror the Power BI model in `docs/POWER BI.pdf`: KPI "placas", gauges and monthly series.
+  3. Eight pages copy the layout of `docs/POWER BI.pdf`: KPI "placas", gauges and monthly series. A `segmented_control` in the header band (`cabecalho()`) picks the page in `pagina`, and only that page renders. Sidebar filters are "Todos" dropdowns (`filtro()`) plus separate start and end dates.
 - **Styling:**
-  - `assets/estilo.css` is injected via `st.markdown`. It uses a wine, black and gold palette with the Marcellus and Jost fonts.
-  - `.streamlit/config.toml` sets the base theme.
+  - `assets/estilo.css` is injected via `st.markdown`. It copies the Power BI look: petrol-teal header band and sidebar (`#074F5D`), teal-gray page background, light cards with a dark border. Only the Fazendinha logo is kept; the palette constants at the top of `app.py` come from the PDF.
+  - `.streamlit/config.toml` sets a light base theme (cards, dialogs and dataframes) and a `[theme.sidebar]` in petrol teal.
+  - Monthly charts use `eixo_mes()` (two-level x: month over year, like Power BI). Tables and the Predição chart still use `rotulo_mes()`.
 
 ## Gotchas
 
 - **Plotly template:** Streamlit ≥ 1.5x ignores custom Plotly templates even with `theme=None`. Always build figures with `figura(...)`, which applies `LAYOUT_BASE` explicitly, never with `go.Figure(...)`. Call figure-specific `update_layout` after `figura()`.
-- **Tab selectors:** Streamlit 1.64 tabs use react-aria. Style them with `[data-testid="stTab"][aria-selected="true"]`, not the BaseWeb `[data-baseweb="tab"]` selectors.
+- **Selectors (Streamlit 1.64, react-aria):** page buttons are `button[data-variant="segmented_control"]`, the active one has `[aria-checked="true"]`. Selectboxes are `.react-aria-ComboBox [role="group"]`, dates are `[data-testid="stDateInputField"]`. A bordered container has no testid of its own, so the CSS targets the `stVerticalBlock` that holds a `.titulo-grafico` (from `moldura()`), or a `st-key-*` class from `key=`.
 - **Icon font:** the global font rule in the CSS must not override `[data-testid="stIconMaterial"]`. Otherwise the icon names render as text, e.g. "_arrow_right".
 - **Category order:** monthly charts use categorical x labels such as `Jan/24` (from `rotulo_mes`) so months show in Portuguese. When traces add categories in a different order, set `categoryorder="array"`.
 - **Cached data:** `carregar()` is wrapped in `st.cache_data`. After regenerating `data/`, restart the server.

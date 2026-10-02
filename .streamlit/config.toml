@@ -1,10 +1,19 @@
+# cores do docs/POWER BI.pdf
 [theme]
-base = "dark"
-primaryColor = "#C9A24B"
-backgroundColor = "#14090C"
-secondaryBackgroundColor = "#2A0E15"
-textColor = "#EADBC0"
-font = "sans serif"
+base = "light"
+primaryColor = "#499783"
+backgroundColor = "#EFF5F5"
+secondaryBackgroundColor = "#E1EBEC"
+textColor = "#253D44"
+borderColor = "#B9CDD1"
+font = "'Segoe UI', Selawik, -apple-system, Helvetica, Arial, sans-serif"
+baseRadius = "6px"
+
+[theme.sidebar]
+backgroundColor = "#074F5D"
+secondaryBackgroundColor = "#074F5D"
+textColor = "#FFFFFF"
+borderColor = "#FFFFFF"
 
 [browser]
 gatherUsageStats = false
