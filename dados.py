@@ -388,6 +388,8 @@ def gravar_modelos(pasta=RAIZ / "modelos"):
 
 def modelo_protocolo():
     """A própria planilha de protocolos, só com a aba MODELO (formatação preservada)."""
+    if not PLANILHA_PROTOCOLOS.exists():  # docs/ fica fora do git: no deploy usa o modelo versionado
+        return (RAIZ / "modelos" / "modelo_protocolos.xlsx").read_bytes()
     wb = openpyxl.load_workbook(PLANILHA_PROTOCOLOS)
     for ws in wb.worksheets:
         if ws.title.strip().upper() != "MODELO":
@@ -415,10 +417,13 @@ def importar_protocolos(conteudo, nome="protocolos.xlsx"):
 
 def ler_todos_protocolos():
     """Planilha original em docs/ mais as importadas, na ordem; protocolo repetido fica com a versão mais nova."""
-    arquivos = [PLANILHA_PROTOCOLOS, *sorted(PASTA_PROTOCOLOS.glob("*.xlsx"))]
-    return (pd.concat([ler_protocolos(a) for a in arquivos], ignore_index=True)
+    arquivos = [a for a in [PLANILHA_PROTOCOLOS, *sorted(PASTA_PROTOCOLOS.glob("*.xlsx"))] if a.exists()]
+    return (pd.concat([ler_protocolos(a) for a in arquivos] or [pd.DataFrame(columns=COLUNAS_PROTOCOLO)],
+                      ignore_index=True)
             .drop_duplicates("protocolo", keep="last").reset_index(drop=True))
 
+COLUNAS_PROTOCOLO = ["protocolo", "data", "departamento", "responsavel", "gestor", "setor", "pops",
+                     "descricao", "devolutiva", "status", *(f"pdca_{k}" for k in "PDCA")]
 _SECOES = ("Descrição dos POPs", "Descrição da Inconsistência", "Devolutiva da Diretoria", "2.  PROTOCOLO PDCA")
 
 
@@ -470,7 +475,7 @@ def ler_protocolos(caminho=PLANILHA_PROTOCOLOS) -> pd.DataFrame:
             "status": "Respondido" if devolutiva else "Aguardando devolutiva",
             **{f"pdca_{k}": pdca.get(k, "") for k in "PDCA"},
         })
-    return pd.DataFrame(registros)
+    return pd.DataFrame(registros, columns=COLUNAS_PROTOCOLO)
 
 
 if __name__ == "__main__":
@@ -480,6 +485,10 @@ if __name__ == "__main__":
     assert indice_conformidade([8], [2]) == 80.0  # NA fica fora do cálculo
     assert list(turno_da_hora(np.array([5, 6, 17, 18]))) == ["Noite", "Dia", "Dia", "Noite"]
     p = ler_protocolos()
+    assert list(p.columns) == COLUNAS_PROTOCOLO
+    _orig, PLANILHA_PROTOCOLOS = PLANILHA_PROTOCOLOS, RAIZ / "nao-existe.xlsx"  # deploy sem docs/
+    assert list(ler_todos_protocolos().columns) == COLUNAS_PROTOCOLO and modelo_protocolo()
+    PLANILHA_PROTOCOLOS = _orig
     assert list(p["protocolo"]) == ["001", "002", "003"] and p["pops"].map(len).tolist() == [7, 3, 2]
     g = _gerar_demo(fim="2024-03-31")
     a = g["auditorias"]
