@@ -1,0 +1,101 @@
+@import url('https://fonts.googleapis.com/css2?family=Marcellus&family=Jost:wght@300;400;500;600&display=swap');
+
+:root {
+  --noir: #14090C;
+  --noir-2: #1E0B10;
+  --bordo: #4A1420;
+  --vinho: #7A2335;
+  --ouro: #C9A24B;
+  --ouro-fraco: rgba(201, 162, 75, .28);
+  --champanhe: #EADBC0;
+  --fumaca: #A8968A;
+  --alerta: #D9604C;
+  --ok: #8DB580;
+}
+
+html, body, [class*="st-"], .stMarkdown, button, input, select, textarea {
+  font-family: 'Jost', sans-serif;
+}
+[data-testid="stIconMaterial"], [data-testid="stExpanderIcon"] { font-family: 'Material Symbols Rounded' !important; }
+
+.stApp {
+  background:
+    radial-gradient(1200px 500px at 70% -10%, rgba(122, 35, 53, .35), transparent 60%),
+    var(--noir);
+}
+
+.block-container { padding-top: 1.6rem; padding-bottom: 3rem; max-width: 1500px; }
+
+h1, h2, h3, .marcellus { font-family: 'Marcellus', serif !important; font-weight: 400 !important; letter-spacing: .02em; }
+
+/* ---------- sidebar ---------- */
+section[data-testid="stSidebar"] {
+  background: linear-gradient(180deg, var(--bordo) 0%, #2A0E15 100%);
+  border-right: 1px solid var(--ouro-fraco);
+}
+section[data-testid="stSidebar"] label, section[data-testid="stSidebar"] .stMarkdown p {
+  color: var(--champanhe);
+}
+.sidebar-titulo {
+  font-family: 'Marcellus', serif; color: var(--ouro); font-size: .78rem;
+  letter-spacing: .22em; text-transform: uppercase; margin: 1.2rem 0 .2rem;
+  border-bottom: 1px solid var(--ouro-fraco); padding-bottom: .35rem;
+}
+section[data-testid="stSidebar"] p.sidebar-nota { color: var(--fumaca); font-size: .78rem; line-height: 1.35; }
+
+/* ---------- cabeçalho ---------- */
+.cabecalho { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  border-bottom: 1px solid var(--ouro-fraco); padding-bottom: .9rem; margin-bottom: 1.1rem; }
+.cabecalho h1 { margin: 0; padding: 0; font-size: 2.1rem; color: var(--champanhe); }
+.cabecalho .sobre { color: var(--ouro); font-size: .72rem; letter-spacing: .3em; text-transform: uppercase; }
+.cabecalho .periodo { color: var(--fumaca); font-size: .85rem; text-align: right; }
+
+/* ---------- abas (react-aria no Streamlit ≥ 1.5x) ---------- */
+.stTabs [role="tablist"] { gap: .4rem; flex-wrap: wrap; border-bottom: none; box-shadow: none; }
+.stTabs [data-testid="stTab"] {
+  background: var(--noir-2); border: 1px solid var(--ouro-fraco); border-radius: 3px;
+  padding: .4rem 1rem; height: auto; color: var(--fumaca); transition: border-color .15s, background .15s;
+}
+.stTabs [data-testid="stTab"]:hover { border-color: var(--ouro); }
+.stTabs [data-testid="stTab"] p { font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; }
+.stTabs [data-testid="stTab"][aria-selected="true"] { background: var(--bordo); border-color: var(--ouro); color: var(--champanhe); }
+.stTabs [data-testid="stTab"][aria-selected="true"]::after, .stTabs [data-testid="stTab"]::before { display: none; }
+.stTabs [data-testid="stTab"][data-focus-visible="true"] { outline: 2px solid var(--ouro); outline-offset: 2px; }
+
+/* ---------- placas (cards KPI) ---------- */
+.placa {
+  background: var(--noir-2);
+  border: 1px solid var(--ouro-fraco);
+  box-shadow: inset 0 0 0 4px var(--noir-2), inset 0 0 0 5px rgba(201, 162, 75, .14);
+  border-radius: 2px; padding: .9rem .6rem .8rem; text-align: center; min-height: 118px;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.placa .valor { font-family: 'Marcellus', serif; font-size: clamp(1.15rem, 1.7vw, 1.6rem); color: var(--champanhe); line-height: 1.15; white-space: nowrap;
+  font-variant-numeric: tabular-nums; }
+.placa .rotulo { font-size: .68rem; letter-spacing: .2em; text-transform: uppercase; color: var(--ouro); margin-top: .3rem; }
+.placa .delta { font-size: .78rem; margin-top: .25rem; color: var(--fumaca); }
+.placa .delta.bom { color: var(--ok); }
+.placa .delta.ruim { color: var(--alerta); }
+
+/* ---------- molduras de gráfico ---------- */
+div[data-testid="stVerticalBlockBorderWrapper"]:has(> div > div[data-testid="stVerticalBlock"]) {
+  border-color: var(--ouro-fraco) !important; background: rgba(30, 11, 16, .65); border-radius: 3px;
+}
+.titulo-grafico { font-family: 'Marcellus', serif; color: var(--champanhe); font-size: 1.02rem; margin: 0 0 .1rem; }
+.sub-grafico { color: var(--fumaca); font-size: .78rem; margin: 0 0 .3rem; }
+
+.aviso {
+  border-left: 2px solid var(--ouro); background: rgba(201, 162, 75, .07); color: var(--fumaca);
+  padding: .5rem .8rem; font-size: .8rem; margin-bottom: 1rem;
+}
+
+/* ---------- protocolos ---------- */
+.protocolo { border: 1px solid var(--ouro-fraco); background: var(--noir-2); padding: .9rem 1.1rem; margin-bottom: .7rem; border-radius: 2px; }
+.protocolo .num { font-family: 'Marcellus', serif; color: var(--ouro); font-size: 1.3rem; }
+.protocolo .meta { color: var(--fumaca); font-size: .8rem; }
+.protocolo .selo { display: inline-block; font-size: .7rem; letter-spacing: .12em; text-transform: uppercase;
+  padding: .1rem .5rem; border: 1px solid var(--alerta); color: var(--alerta); border-radius: 2px; margin-left: .5rem; }
+.protocolo .selo.ok { border-color: var(--ok); color: var(--ok); }
+.protocolo p { color: var(--champanhe); font-size: .9rem; margin: .5rem 0 0; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
