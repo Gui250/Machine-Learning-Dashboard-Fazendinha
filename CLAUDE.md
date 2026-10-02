@@ -8,6 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt   # one-time setup
 .venv/bin/streamlit run app.py                                       # run dashboard (http://localhost:8501)
 .venv/bin/python dados.py                                            # self-check: data loading, conformity formula, protocol parser
+.venv/bin/python dados.py modelos                                    # regenerate the import templates in modelos/
 .venv/bin/python predicao.py                                         # self-check: forecasting models
 ```
 
@@ -19,7 +20,7 @@ A Streamlit controllership ("Controladoria") dashboard for **Fazendinha Resort P
 
 - **`dados.py`** owns the data, the domain constants and the business rules.
   - Domain constants: `METAS` (targets), `DEPARTAMENTOS` (the 66 POPs with gestor, priority P1–P4 and shift), `CENTROS` (revenue centers).
-  - `carregar()` reads `data/*.csv`, which only exist after an import. A missing base comes back as an empty frame with the template columns and is listed in `ausentes`. Data enters only through the sidebar's **Importar planilhas** dialog. It offers a template download per base (`modelo_planilha`, columns from `MODELOS`), then `validar()` + `importar()`. Importing either appends and updates by `CHAVES`, or replaces the base.
+  - `carregar()` reads `data/*.csv`, which only exist after an import. A missing base comes back as an empty frame with the template columns and is listed in `ausentes`. Data enters only through the sidebar's **Importar planilhas** dialog. It offers a template download per base (`modelo_planilha`: columns from `MODELOS`, header-only data sheet, dropdowns from `PERMITIDOS`, example row from `EXEMPLOS` in the Instruções sheet), then `validar()` + `importar()`. Importing either appends and updates by `CHAVES`, or replaces the base.
   - `_gerar_demo()` is only a fixture for the self-check. The app never shows synthetic data.
   - Imported protocol workbooks are saved to `data/protocolos/`. `ler_todos_protocolos()` merges them with the docs/ workbook, and the newest version of a protocol number wins.
   - `ler_protocolos()` parses the **real** inconsistency protocols from `docs/Protocolo Avulso de inconsistência.xlsx`. It reads one sheet per protocol and skips the `MODELO` sheet.

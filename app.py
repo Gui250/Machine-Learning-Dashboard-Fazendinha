@@ -193,7 +193,7 @@ def importar_planilhas():
 
     st.caption("Baixe o modelo, preencha a primeira aba mantendo os nomes das colunas e envie em .xlsx ou .csv. "
                "A aba Instruções descreve cada coluna.")
-    st.download_button("Baixar modelo", dados.modelo_planilha(base, bases[base]), f"modelo_{base}.xlsx",
+    st.download_button("Baixar modelo", dados.modelo_planilha(base), f"modelo_{base}.xlsx",
                        icon=":material/download:")
     arquivo = st.file_uploader("Planilha preenchida", type=["xlsx", "csv"])
     if not arquivo:

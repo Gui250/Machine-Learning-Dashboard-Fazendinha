@@ -9,6 +9,7 @@ from pathlib import Path
 
 import numpy as np
 import openpyxl
+from openpyxl.worksheet.datavalidation import DataValidation
 import pandas as pd
 
 RAIZ = Path(__file__).parent
@@ -341,20 +342,48 @@ def importar(base, df, substituir=False):
     df.drop_duplicates(CHAVES[base], keep="last").sort_values(CHAVES[base]).to_csv(caminho, index=False)
 
 
-def modelo_planilha(base, exemplo):
-    """Modelo .xlsx: aba da base com cabeçalho e 3 linhas de exemplo, mais a aba Instruções."""
-    titulo, colunas = MODELOS[base]
-    exemplo = exemplo[list(colunas)].head(3).copy()
-    exemplo[COLUNAS_DATA[base]] = exemplo[COLUNAS_DATA[base]].dt.date
-    instrucoes = pd.DataFrame({"coluna": list(colunas), "descrição": list(colunas.values())})
+# uma linha de exemplo por base, na ordem das colunas do modelo (vai para a aba Instruções)
+EXEMPLOS = {
+    "receitas": ["01/10/2026", 21, 40, 26, 2870.40, 910.00, 1640.50, 520.00, 22],
+    "caixa": ["01/10/2026", "Noite", 48250.30, 48250.30],
+    "custos": ["01/10/2026", "Gastronomia", 480600.00, 129760.00, 135700.00, 5650.00],
+    "orcamento": ["01/10/2026", "Hospedagem", 1465000.00],
+    "auditorias": ["05/10/2026", "Caixa Noite", "Ernesto", "P1", 46, "Abertura e Conferência de Caixa", "Diária",
+                   11, 1, 0, 3.5],
+}
+LINHAS_MODELO = 5000  # alcance das listas suspensas no modelo
+
+
+def modelo_planilha(base):
+    """Modelo .xlsx: aba da base só com o cabeçalho (com listas suspensas nos campos de valor fixo) e aba Instruções."""
+    colunas = MODELOS[base][1]
+    instrucoes = pd.DataFrame({"coluna": list(colunas), "descrição": list(colunas.values()), "exemplo": EXEMPLOS[base]})
     buf = BytesIO()
     with pd.ExcelWriter(buf, engine="openpyxl") as w:
-        exemplo.to_excel(w, sheet_name=base, index=False)
+        pd.DataFrame(columns=list(colunas)).to_excel(w, sheet_name=base, index=False)
         instrucoes.to_excel(w, sheet_name="Instruções", index=False)
         for ws in w.book.worksheets:
+            ws.freeze_panes = "A2"
             for col in ws.columns:
                 ws.column_dimensions[col[0].column_letter].width = max(len(str(x.value or "")) for x in col) + 3
+        ws = w.book[base]
+        for n, c in enumerate(colunas, start=1):
+            if (base, c) in PERMITIDOS:
+                letra = openpyxl.utils.get_column_letter(n)
+                lista = DataValidation(type="list", formula1=f'"{",".join(sorted(PERMITIDOS[base, c]))}"',
+                                       showErrorMessage=True, error=f"Use um destes: {', '.join(sorted(PERMITIDOS[base, c]))}")
+                lista.add(f"{letra}2:{letra}{LINHAS_MODELO + 1}")
+                ws.add_data_validation(lista)
     return buf.getvalue()
+
+
+def gravar_modelos(pasta=RAIZ / "modelos"):
+    """Grava em modelos/ um .xlsx por base mais o modelo de protocolo. Rodar: python dados.py modelos"""
+    pasta.mkdir(exist_ok=True)
+    for b in MODELOS:
+        (pasta / f"modelo_{b}.xlsx").write_bytes(modelo_planilha(b))
+    (pasta / "modelo_protocolos.xlsx").write_bytes(modelo_protocolo())
+    return pasta
 
 
 def modelo_protocolo():
@@ -445,6 +474,9 @@ def ler_protocolos(caminho=PLANILHA_PROTOCOLOS) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
+    import sys
+    if sys.argv[1:] == ["modelos"]:
+        sys.exit(print("modelos gravados em", gravar_modelos()))
     assert indice_conformidade([8], [2]) == 80.0  # NA fica fora do cálculo
     assert list(turno_da_hora(np.array([5, 6, 17, 18]))) == ["Noite", "Dia", "Dia", "Noite"]
     p = ler_protocolos()
@@ -455,11 +487,11 @@ if __name__ == "__main__":
     assert a["pop_num"].nunique() == 66  # POPs 1–67 (o 22 não existe na Etapa 2)
     r = g["receitas"]
     assert (r["horas_vendidas"] <= r["horas_disponiveis"]).all()
-    # importação: o modelo baixado volta íntegro; texto brasileiro e datas dd/mm são aceitos
+    # importação: o modelo tem as colunas da base, o exemplo de cada base é válido e o gerador segue o modelo
     for b in MODELOS:
-        ida = pd.read_excel(BytesIO(modelo_planilha(b, g[b])), sheet_name=0)
-        pd.testing.assert_frame_equal(validar(b, ida).reset_index(drop=True), g[b][list(MODELOS[b][1])].head(3),
-                                      check_dtype=False, check_exact=False)
+        assert list(pd.read_excel(BytesIO(modelo_planilha(b)), sheet_name=0).columns) == list(MODELOS[b][1])
+        validar(b, pd.DataFrame([EXEMPLOS[b]], columns=list(MODELOS[b][1])))
+        validar(b, g[b].head(50))
     cx = validar("caixa", pd.DataFrame({"Data": ["05/01/2024", "2024-01-05"], "turno": ["Dia", "Noite"],
                                         "valor_sistema": ["R$ 1.234,56", "10"], "valor_contado": [1234.5, 9.5]}))
     assert list(cx["data"]) == [pd.Timestamp("2024-01-05")] * 2 and cx["valor_sistema"].tolist() == [1234.56, 10]
