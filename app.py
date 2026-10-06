@@ -20,7 +20,7 @@ MESES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "
 DIAS_SEMANA = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
 M = dados.METAS
 
-st.set_page_config(page_title="Controladoria · Fazendinha Resort Privé", page_icon=str(ASSETS / "logo.png"), layout="wide")
+st.set_page_config(page_title="Controladoria · Fazendinha Resort Privé", page_icon=str(ASSETS / "favicon.png"), layout="wide")
 st.markdown(f"<style>{(ASSETS / 'estilo.css').read_text()}</style>", unsafe_allow_html=True)
 
 # Layout base aplicado explicitamente: o Streamlit ≥ 1.5x ignora templates customizados do Plotly.
@@ -168,7 +168,13 @@ def carregar():
     return dados.carregar()
 
 
-bases, ausentes = carregar()
+@st.cache_data(show_spinner="Gerando dados de demonstração…")
+def carregar_demo():
+    return dados._gerar_demo() | {"protocolos": dados.ler_todos_protocolos()}, []
+
+
+demo = st.session_state.get("demo", False)
+bases, ausentes = carregar_demo() if demo else carregar()
 if aviso := st.session_state.pop("importado", None):
     st.toast(aviso, icon=":material/check_circle:")
 
@@ -225,6 +231,8 @@ def importar_planilhas():
 def botao_importar():
     if st.button("Importar planilhas", icon=":material/upload_file:", width="stretch"):
         importar_planilhas()
+    st.toggle("Mostrar dados demo", key="demo", help="Dados fictícios, só para ver como o painel fica. "
+              "Nada é gravado; desligue para voltar aos dados importados.")
 
 
 def faltando(*bs):
@@ -354,6 +362,9 @@ nomes_abas = {"Visão geral": None, "Tesouraria e receitas": None, "Custos e CMV
               "Indicadores": None, "Predição": None}
 visiveis = [a for a, b in nomes_abas.items() if b not in ausentes]
 pagina = cabecalho(visiveis)
+if demo:
+    st.markdown('<div class="aviso">Exibindo <b>dados de demonstração</b> (fictícios). Desligue '
+                '<b>Mostrar dados demo</b> na barra lateral para ver os dados importados.</div>', unsafe_allow_html=True)
 if ausentes:
     st.markdown(f'<div class="aviso">Ainda não importadas: {faltando(*ausentes)}. Os painéis dessas bases ficam '
                 'ocultos até a importação.</div>', unsafe_allow_html=True)

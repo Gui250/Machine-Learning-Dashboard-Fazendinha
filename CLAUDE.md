@@ -21,7 +21,7 @@ A Streamlit controllership ("Controladoria") dashboard for **Fazendinha Resort P
 - **`dados.py`** owns the data, the domain constants and the business rules.
   - Domain constants: `METAS` (targets), `DEPARTAMENTOS` (the 66 POPs with gestor, priority P1–P4 and shift), `CENTROS` (revenue centers).
   - `carregar()` reads `data/*.csv`, which only exist after an import. A missing base comes back as an empty frame with the template columns and is listed in `ausentes`. Data enters only through the sidebar's **Importar planilhas** dialog. It offers a template download per base (`modelo_planilha`: columns from `MODELOS`, header-only data sheet, dropdowns from `PERMITIDOS`, example row from `EXEMPLOS` in the Instruções sheet), then `validar()` + `importar()`. Importing either appends and updates by `CHAVES`, or replaces the base.
-  - `_gerar_demo()` is only a fixture for the self-check. The app never shows synthetic data.
+  - `_gerar_demo()` is the self-check fixture and also backs the sidebar's **Mostrar dados demo** toggle (`st.session_state["demo"]`). The toggle shows synthetic data in memory only, with a banner, and never writes to `data/`.
   - Imported protocol workbooks are saved to `data/protocolos/`. `ler_todos_protocolos()` merges them with the docs/ workbook, and the newest version of a protocol number wins.
   - `ler_protocolos()` parses the **real** inconsistency protocols from `docs/Protocolo Avulso de inconsistência.xlsx`. It reads one sheet per protocol and skips the `MODELO` sheet.
 - **`predicao.py`** does monthly forecasting. It fits a linear trend, then models seasonality (month one-hot) on the trend residuals with the chosen scikit-learn model.
